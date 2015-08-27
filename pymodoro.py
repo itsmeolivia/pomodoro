@@ -1,4 +1,7 @@
 import Tkinter
+from Tkinter import messagebox
+
+DEFAULT_GAP = 1500
 
 class Pymodoro:
     def __init__(self, master):
@@ -6,9 +9,18 @@ class Pymodoro:
         self.mainframe = Tkinter.Frame(self.master, bg="white")
         self.mainframe.pack(fill=Tkinter.BOTH, expand=True)
 
+        self.timer_text = Tkinter.StringVar()
+        self.timer_text.trace("w", self.build_timer)
+        self.time_remaining = Tkinter.IntVar()
+        self.time_remaining.set(DEFAULT_GAP)
+        self.running = False
+
         self.build_grid()
         self.build_banner()
         self.build_buttons()
+        self.build_timer()
+
+        self.update()
 
 
     def build_grid(self):
@@ -44,16 +56,58 @@ class Pymodoro:
 
         self.start_button = Tkinter.Button(
             button_frame,
-            text="Start"
+            text="Start",
+            command=self.start_timer
         )
 
         self.stop_button = Tkinter.Button(
             button_frame,
-            text="Stop"
+            text="Stop",
+            command=self.stop_timer
         )
 
         self.start_button.grid(row=0, column=0, sticky="ew")
         self.stop_button.grid(row=0, column=1, sticky="ew")
+        self.stop_button.config(state=Tkinter.DISABLED)
+
+    def build_timer(self, *args):
+        timer = Tkinter.Label(
+            self.mainframe,
+            text=self.timer_text.get(),
+            font=("Helvetica", 36)
+        )
+
+        timer.grid(row=1, column=0, sticky="nsew")
+
+    def start_timer(self):
+        self.time_remaining.set(DEFAULT_GAP)
+        self.running = True
+        self.start_button.config(state=Tkinter.DISABLED)
+        self.stop_button.config(state=Tkinter.NORMAL)
+
+    def stop_timer(self):
+        self.running = False
+        self.stop_button.config(state=Tkinter.DISABLED)
+        self.start_button.config(state=Tkinter.NORMAL)
+
+    def minutes_seconds(self, seconds):
+        return seconds // 60, int(seconds % 60)
+
+    def update(self):
+        time_left = self.time_remaining.get()
+
+        if self.running and time_left:
+            minutes, seconds = self.minutes_seconds(time_left)
+            self.time_remaining.set(time_left - 1)
+        else:
+            minutes, seconds = self.minutes_seconds(DEFAULT_GAP)
+            self.stop_timer()
+        self.timer_text.set(
+            "{:0>2}:{:0>2}".format(minutes, seconds)
+        )
+        self.master.after(1000, self.update)
+
+
 
 if __name__ == "__main__":
     root = Tkinter.Tk()
