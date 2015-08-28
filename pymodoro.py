@@ -1,5 +1,5 @@
 import Tkinter
-from Tkinter import messagebox
+import tkMessageBox
 
 DEFAULT_GAP = 1500
 
@@ -13,6 +13,7 @@ class Pymodoro:
         self.timer_text.trace("w", self.build_timer)
         self.time_remaining = Tkinter.IntVar()
         self.time_remaining.set(DEFAULT_GAP)
+        self.time_remaining.trace("w", self.alert)
         self.running = False
 
         self.build_grid()
@@ -89,6 +90,11 @@ class Pymodoro:
         self.running = False
         self.stop_button.config(state=Tkinter.DISABLED)
         self.start_button.config(state=Tkinter.NORMAL)
+
+    def alert(self, *args):
+        if not self.time_remaining.get():
+            tkMessageBox.showinfo("Time's up", "TIME TO WASTE")
+
 
     def minutes_seconds(self, seconds):
         return seconds // 60, int(seconds % 60)
